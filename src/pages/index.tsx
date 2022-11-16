@@ -5,7 +5,7 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { Router, useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 const Home: NextPage = () => {
@@ -15,8 +15,15 @@ const Home: NextPage = () => {
     formState: { errors },
   } = useForm();
   const { login, user, isLoading } = useAuth();
+
+  const [loginError, setLoginError] = useState(false);
+
   const onSubmit = async (data: any) => {
-    login(data as UserCredentials);
+    setLoginError(false);
+    const resp = await login(data as UserCredentials);
+    if (!resp) {
+      setLoginError(true);
+    }
   };
 
   const router = useRouter();
@@ -41,23 +48,26 @@ const Home: NextPage = () => {
         <Flex direction={"column"}>
           <h1>Welcome</h1>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Input
-              type={"email"}
-              placeholder={"Email"}
-              {...register("email", { required: true })}
-            />
-            {errors.email && <span>Email is required</span>}
-            <Input
-              type={"password"}
-              placeholder={"Password"}
-              {...register("password", { required: true })}
-            />
-            {errors.password && <span>Password is required</span>}
-            {isLoading ? (
-              <span>Loading...</span>
-            ) : (
-              <Button type={"submit"}>Login</Button>
-            )}
+            <Flex direction={"column"} rowGap={"20px"}>
+              <Input
+                type={"email"}
+                placeholder={"Email"}
+                {...register("email", { required: true })}
+              />
+              {errors.email && <span>Email is required</span>}
+              <Input
+                type={"password"}
+                placeholder={"Password"}
+                {...register("password", { required: true })}
+              />
+              {errors.password && <span>Password is required</span>}
+              {loginError && <span>Login or password are wrong</span>}
+              {isLoading ? (
+                <span>Loading...</span>
+              ) : (
+                <Button type={"submit"}>Login</Button>
+              )}
+            </Flex>
           </form>
           <Text>
             Forgot your password? <Link href={"#"}>Click here</Link>

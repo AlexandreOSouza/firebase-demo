@@ -28,31 +28,36 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   const login = async ({ email, password }: UserCredentials) => {
-    setIsLoading(true);
-    const response = await auth.signInWithEmailAndPassword(email, password);
-    const signedUser = await firestore
-      .collection("users")
-      .doc(response.user?.uid)
-      .get();
+    try {
+      setIsLoading(true);
+      const response = await auth.signInWithEmailAndPassword(email, password);
+      const signedUser = await firestore
+        .collection("users")
+        .doc(response.user?.uid)
+        .get();
 
-    const userFirestore = signedUser.data() as User;
-    if (userFirestore) {
-      await firestore.doc(`users/${userFirestore.uid}`).update({
-        ...userFirestore,
-      });
-
-      await getAndSetUserFirestore(userFirestore.uid);
-    } else {
-      if (response?.user?.uid) {
-        await firestore.doc(`users/${response?.user?.uid}`).set({
-          uid: response?.user?.uid,
-          email,
+      const userFirestore = signedUser.data() as User;
+      if (userFirestore) {
+        await firestore.doc(`users/${userFirestore.uid}`).update({
+          ...userFirestore,
         });
-        await getAndSetUserFirestore(response?.user?.uid);
+
+        await getAndSetUserFirestore(userFirestore.uid);
+      } else {
+        if (response?.user?.uid) {
+          await firestore.doc(`users/${response?.user?.uid}`).set({
+            uid: response?.user?.uid,
+            email,
+          });
+          await getAndSetUserFirestore(response?.user?.uid);
+        }
       }
+      setIsLoading(false);
+      return response;
+    } catch (e: any) {
+      setIsLoading(false);
+      return undefined;
     }
-    setIsLoading(false);
-    return response;
   };
 
   return (
