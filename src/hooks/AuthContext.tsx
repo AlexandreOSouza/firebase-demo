@@ -6,6 +6,7 @@ type AuthContextProps = {
   login: (data: UserCredentials) => Promise<any>;
   user: User;
   isLoading: boolean;
+  logout: () => void;
 };
 
 export const AuthContext = createContext({} as AuthContextProps);
@@ -15,7 +16,7 @@ type Props = {
 };
 
 export const AuthProvider = ({ children }: Props) => {
-  const [user, setUser] = useState<User>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const getAndSetUserFirestore = async (uid: string) => {
@@ -60,8 +61,14 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
+  const logout = async () => {
+    await auth.signOut();
+    setUser(null);
+    console.log("user logout");
+  };
+
   return (
-    <AuthContext.Provider value={{ login, user, isLoading }}>
+    <AuthContext.Provider value={{ login, user, isLoading, logout }}>
       {children}
     </AuthContext.Provider>
   );
